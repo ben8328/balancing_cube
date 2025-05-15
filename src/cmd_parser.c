@@ -31,12 +31,6 @@ static void _help(int, char *[]);
 #include "data_logging.h"
 
 // Forward declarations for new commands
-static void cmd_motor_test_init(int argc, char *argv[]);
-static void cmd_motor_test_start(int argc, char *argv[]);
-static void cmd_motor_test_stop(int argc, char *argv[]);
-bool cmd_motor_test_is_enabled(void);
-
-static void _cmd_setMotorSpeed(int argc, char *argv[]);
 static void _cmd_setMotorVoltage(int argc, char *argv[]);
 
 static void _cmd_IMULoggingStart(int argc, char *argv[]);
@@ -48,12 +42,7 @@ static CMD_T cmd_table[] = {
     { heartbeat_cmd       , "heartbeat", "[start|stop]", "Get status or start/stop heartbeat task" },
     { controller_cmd      , "ctrl"     , "[init]|[get u1|u2|u3]|[set x1..x8 <value>]", "Get or set control outputs/states" },
     {_cmd_IMULoggingStart           , "startIMULog"                 , ""                        , "Start IMU Data Logging"},
-    {_cmd_setMotorSpeed           , "setSpeed"                  , "[mtr1 spd | mtr2 sped | mtr3 spd]"       , "Sets Motor Speed (-127 to 127)"},
-    {_cmd_setMotorVoltage           , "setVoltage"                  , "[mtr1 V | mtr2 V | mtr3]"       , "Sets Motor Voltage (-15 < V < 15)"},
-    // Motor test commands
-    // { cmd_motor_test_init , "mt_init"  , "" , "Initialize motor-test hardware" },
-    // { cmd_motor_test_start, "mt_start" , "" , "Start motor-test state machine" },
-    // { cmd_motor_test_stop , "mt_stop"  , "" , "Stop motor-test state machine" },
+    {_cmd_setMotorVoltage           , "setVoltage"                  , "[mtr1 V | mtr2 V | mtr3]"       , "Sets Motor Voltage (-3.3 < V < 3.3)"},
 };
 enum {CMD_TABLE_SIZE = sizeof(cmd_table)/sizeof(CMD_T)};
 enum {CMD_MAX_TOKENS = 6};
@@ -115,29 +104,6 @@ void _cmd_IMULoggingStart(int argc, char *argv[])
     imu_logging_start();
 }
 
-
-void _cmd_setMotorSpeed(int argc, char *argv[])
-{
-    // Ensure correct number of arguments
-    if (argc != 4)
-    {
-        printf("Usage: setVoltage <voltage_motor1> <voltage_motor2> <voltage_motor3>\n");
-
-        return;
-    }
-
-    // Parse voltage argument
-    float voltage_motor1 = atof(argv[1]);
-    float voltage_motor2 = atof(argv[2]);
-    float voltage_motor3 = atof(argv[3]);
-
-    // Set the motor speed
-    motor_set_speed(voltage_motor1, voltage_motor2, voltage_motor3);
-
-    // Print confirmation
-    printf("\nMotor 1 voltage set to: %f\nMotor 2 voltage set to: %f\nMotor 3 voltage set to: %f\n", voltage_motor1, voltage_motor2, voltage_motor3);
-}
-
 void _cmd_setMotorVoltage(int argc, char *argv[])
 {
     // Ensure correct number of arguments
@@ -159,30 +125,3 @@ void _cmd_setMotorVoltage(int argc, char *argv[])
     // Print confirmation
     printf("\nMotor 1 voltage set to: %f\nMotor 2 voltage set to: %f\nMotor 3 voltage set to: %f\n", voltage_motor1, voltage_motor2, voltage_motor3);
 }
-
-// // Motor-test command handlers
-// static void cmd_motor_test_init(int argc, char *argv[])
-// {
-//     (void)argc; (void)argv;
-//     Motors_Test_Init();
-//     printf("Motor-test initialized. Use 'mt_start' to run.\r\n");
-// }
-
-// static void cmd_motor_test_start(int argc, char *argv[])
-// {
-//     (void)argc; (void)argv;
-//     motors_test_enabled = true;
-//     printf("Motor-test started.\r\n");
-// }
-
-// static void cmd_motor_test_stop(int argc, char *argv[])
-// {
-//     (void)argc; (void)argv;
-//     motors_test_enabled = false;
-//     printf("Motor-test stopped.\r\n");
-// }
-
-// bool cmd_motor_test_is_enabled(void) 
-// {
-//     return motors_test_enabled;
-// }
