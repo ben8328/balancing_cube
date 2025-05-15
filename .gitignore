@@ -5,3 +5,4 @@ bin/robot.map
 build/cmd_parser.o
 *.o
 *.d
+.DS_Store
