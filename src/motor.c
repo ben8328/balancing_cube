@@ -124,41 +124,38 @@ void motor_encoder_init(void) {
     GPIO_InitStruct.Pin = M1_ENCA_PIN | M1_ENCB_PIN;
     GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING_FALLING;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
     HAL_GPIO_Init(M1_ENCA_GPIO_PORT, &GPIO_InitStruct);
-    GPIO_InitStruct.Pin = M2_ENCA_PIN | M2_ENCB_PIN;
-    HAL_GPIO_Init(M2_ENCA_GPIO_PORT, &GPIO_InitStruct);
-    GPIO_InitStruct.Pin = M3_ENCA_PIN | M3_ENCB_PIN;
-    HAL_GPIO_Init(M3_ENCA_GPIO_PORT, &GPIO_InitStruct);
+    // GPIO_InitStruct.Pin = M2_ENCA_PIN | M2_ENCB_PIN;
+    // HAL_GPIO_Init(M2_ENCA_GPIO_PORT, &GPIO_InitStruct);
+    // GPIO_InitStruct.Pin = M3_ENCA_PIN | M3_ENCB_PIN;
+    // HAL_GPIO_Init(M3_ENCA_GPIO_PORT, &GPIO_InitStruct);
 
-    HAL_NVIC_SetPriority(EXTI9_5_IRQn, 5, 0);
+    /* Set priority and enable EXTI interrupt for lines 4 to 9 (PA6, PA7, PB4, PB5) */
+    HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0x0f, 0x0f);
     HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+    printf("\nMotor Encoders Initialized\n");
 }
 
 void EXTI9_5_IRQHandler(void) {
-    // Motor 1
-    if (__HAL_GPIO_EXTI_GET_IT(M1_ENCA_PIN)) {
-        HAL_GPIO_EXTI_IRQHandler(M1_ENCA_PIN);
+    // Handle Encoder for Motor 1 
+    if (__HAL_GPIO_EXTI_GET_IT(M1_ENCA_PIN) != RESET) {
+        // Check the direction using PA6 (A) and PA7 (B) for Motor 1
         if (HAL_GPIO_ReadPin(M1_ENCA_GPIO_PORT, M1_ENCA_PIN) != HAL_GPIO_ReadPin(M1_ENCB_GPIO_PORT, M1_ENCB_PIN))
-            enc_count1++;
-        else enc_count1--;
+        {
+            enc_count1++;   // Encoder is moving in one direction
+        }  
+        else enc_count1--;  // Encoder is moving in the opposite direction
+
+        // Clear the interrupt flag for PA6
+        HAL_GPIO_EXTI_IRQHandler(M1_ENCA_PIN);
     }
-    if (__HAL_GPIO_EXTI_GET_IT(M1_ENCB_PIN)) HAL_GPIO_EXTI_IRQHandler(M1_ENCB_PIN);
-    // Motor 2
-    if (__HAL_GPIO_EXTI_GET_IT(M2_ENCA_PIN)) {
-        HAL_GPIO_EXTI_IRQHandler(M2_ENCA_PIN);
-        if (HAL_GPIO_ReadPin(M2_ENCA_GPIO_PORT, M2_ENCA_PIN) != HAL_GPIO_ReadPin(M2_ENCB_GPIO_PORT, M2_ENCB_PIN))
-            enc_count2++;
-        else enc_count2--;
+    // Handle Encoder for Motor 1 (PA7)
+    if (__HAL_GPIO_EXTI_GET_IT(M1_ENCB_PIN) != RESET)
+    {
+        HAL_GPIO_EXTI_IRQHandler(M1_ENCB_PIN);
     }
-    if (__HAL_GPIO_EXTI_GET_IT(M2_ENCB_PIN)) HAL_GPIO_EXTI_IRQHandler(M2_ENCB_PIN);
-    // Motor 3
-    if (__HAL_GPIO_EXTI_GET_IT(M3_ENCA_PIN)) {
-        HAL_GPIO_EXTI_IRQHandler(M3_ENCA_PIN);
-        if (HAL_GPIO_ReadPin(M3_ENCA_GPIO_PORT, M3_ENCA_PIN) != HAL_GPIO_ReadPin(M3_ENCB_GPIO_PORT, M3_ENCB_PIN))
-            enc_count3++;
-        else enc_count3--;
-    }
-    if (__HAL_GPIO_EXTI_GET_IT(M3_ENCB_PIN)) HAL_GPIO_EXTI_IRQHandler(M3_ENCB_PIN);
 }
 
 static float counts_to_radians(int32_t counts) {
@@ -206,63 +203,4 @@ void motor_set_voltage(float voltage_motor1, float voltage_motor2, float voltage
     if (dutyCycle_motor1 > 19998) dutyCycle_motor1 = 19998;  // Limit duty cycle to 100%
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_1, dutyCycle_motor1); 
     printf("\nTimer Channel 1 set to duty cycle: %f\n" , dutyCycle_motor1);
-
-    // // Motor 2 direction control (PC5, PC6)
-    // if (voltage_motor2 > 0)
-    // {
-    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_SET);   // IN3 = HIGH
-    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET); // IN4 = LOW
-    //     dutyCycle_motor2 = voltage_motor2*1666.7;//1667*6 10000Hz MAX Duty cycle
-    // }
-    // else if (voltage_motor2 < 0)
-    // {
-    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET); // IN3 = LOW
-    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_SET);   // IN4 = HIGH
-    //     dutyCycle_motor2 = voltage_motor2*-1666.7;//1667*6 10000Hz MAX Duty cycle
-        
-        
-        
-    // }
-    // else
-    // {
-    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_5, GPIO_PIN_RESET);
-    //     HAL_GPIO_WritePin(GPIOC, GPIO_PIN_6, GPIO_PIN_RESET);
-    // }
-
-    // // Set PWM duty cycle for Motor 2 enable (ENB -> PA9, TIM1 CH2)
-    // // dutyCycle_motor2 = -dutyCycle_motor2;  // Make positive for PWM
-    // if (dutyCycle_motor2 > 9999) dutyCycle_motor2 = 9999;  // Limit duty cycle to 100%
-    // __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_2, dutyCycle_motor2); 
-    // printf("\nTimer Channel 2 set to duty cycle: %f\n" , dutyCycle_motor2);
 }
-
-// void motor_set_voltage(float voltage1, float voltage2, float voltage3)
-// {
-//     // Clip voltages to supply bounds
-//     const float Vsup = MOTOR_SUPPLY_VOLTAGE;
-//     float v1 = voltage1;
-//     float v2 = voltage2;
-//     float v3 = voltage3;
-//     if (v1 > Vsup) v1 = Vsup;
-//     if (v1 < -Vsup) v1 = -Vsup;
-//     if (v2 > Vsup) v2 = Vsup;
-//     if (v2 < -Vsup) v2 = -Vsup;
-//     if (v3 > Vsup) v3 = Vsup;
-//     if (v3 < -Vsup) v3 = -Vsup;
-
-//     // Map voltage magnitude to PWM duty
-//     uint32_t max_count = htim1.Init.Period + 1;
-//     uint32_t duty1 = (uint32_t)(fabsf(v1) / Vsup * max_count);
-//     uint32_t duty2 = (uint32_t)(fabsf(v2) / Vsup * max_count);
-//     uint32_t duty3 = (uint32_t)(fabsf(v3) / Vsup * max_count);
-
-//     // Set direction pins
-//     HAL_GPIO_WritePin(M1_DIR_GPIO_PORT, M1_DIR_PIN, (v1 >= 0) ? GPIO_PIN_RESET : GPIO_PIN_SET);
-//     HAL_GPIO_WritePin(M2_DIR_GPIO_PORT, M2_DIR_PIN, (v2 >= 0) ? GPIO_PIN_RESET : GPIO_PIN_SET);
-//     HAL_GPIO_WritePin(M3_DIR_GPIO_PORT, M3_DIR_PIN, (v3 >= 0) ? GPIO_PIN_RESET : GPIO_PIN_SET);
-
-//     // Apply PWM compare
-//     __HAL_TIM_SET_COMPARE(&htim1, M1_PWM_CHANNEL, duty1);
-//     __HAL_TIM_SET_COMPARE(&htim1, M2_PWM_CHANNEL, duty2);
-//     __HAL_TIM_SET_COMPARE(&htim1, M3_PWM_CHANNEL, duty3);
-// }

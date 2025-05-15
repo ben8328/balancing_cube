@@ -32,7 +32,7 @@ static void _help(int, char *[]);
 
 // Forward declarations for new commands
 static void _cmd_setMotorVoltage(int argc, char *argv[]);
-
+static void _cmd_getMotorRotation(int argc, char *argv[]);
 static void _cmd_IMULoggingStart(int argc, char *argv[]);
 
 
@@ -43,6 +43,7 @@ static CMD_T cmd_table[] = {
     { controller_cmd      , "ctrl"     , "[init]|[get u1|u2|u3]|[set x1..x8 <value>]", "Get or set control outputs/states" },
     {_cmd_IMULoggingStart           , "startIMULog"                 , ""                        , "Start IMU Data Logging"},
     {_cmd_setMotorVoltage           , "setVoltage"                  , "[mtr1 V | mtr2 V | mtr3]"       , "Sets Motor Voltage (-3.3 < V < 3.3)"},
+    {_cmd_getMotorRotation          , "getMotorRot"                 , ""                        , "gets Motor Rotations"},
 };
 enum {CMD_TABLE_SIZE = sizeof(cmd_table)/sizeof(CMD_T)};
 enum {CMD_MAX_TOKENS = 6};
@@ -124,4 +125,20 @@ void _cmd_setMotorVoltage(int argc, char *argv[])
 
     // Print confirmation
     printf("\nMotor 1 voltage set to: %f\nMotor 2 voltage set to: %f\nMotor 3 voltage set to: %f\n", voltage_motor1, voltage_motor2, voltage_motor3);
+}
+
+
+void _cmd_getMotorRotation(int argc, char *argv[])
+{
+    /* TODO: Supress compiler warnings for unused arguments */
+    UNUSED(argc);
+    UNUSED(argv);
+    
+    float MTR1_rotation_radians = motor1_get_wheel_rotation();
+    // float MTR2_rotation_radians = motor2_get_wheel_rotation();
+    // float MTR3_rotation_radians = motor3_get_wheel_rotation();
+
+    /* TODO: Print the voltage to the serial terminal */
+    // printf("\nMotor 1 rotation: %f Rads\nMotor 2 rotation: %f Rads\n", MTR1_rotation_radians, MTR2_rotation_radians);
+    printf("\nMotor 1 rotation: %f Rads\n", MTR1_rotation_radians);
 }

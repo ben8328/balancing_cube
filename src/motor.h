@@ -68,5 +68,7 @@ void motor_pwm_init(void);
 void motor_set_speed(int16_t speed1, int16_t speed2, int16_t speed3);
 
 void motor_set_voltage(float voltage1, float voltage2, float voltage3);
+float motor1_get_wheel_rotation(void);
+// float motor2_get_wheel_rotation(void);
 
 #endif // MOTOR_H
