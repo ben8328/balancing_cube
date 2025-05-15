@@ -3,3 +3,5 @@ LQR Modelling/slprj
 bin/robot.elf
 bin/robot.map
 build/cmd_parser.o
+*.o
+*.d
